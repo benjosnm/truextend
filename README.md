@@ -1,5 +1,4 @@
-# truextend
-Truextend S4 project
+# truextend S4
 
 Base on Spring boot standalone Spring base app to support an embed Tomcat to publish JAX-RS Rest services.
 
