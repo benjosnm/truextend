@@ -6,6 +6,8 @@ import net.truextend.s4api.repository.S4ClassRepository;
 import net.truextend.s4api.repository.entity.S4ClassEntity;
 import net.truextend.s4api.repository.entity.S4StudentEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,38 +22,49 @@ public class S4ClassService {
     @Autowired
     private S4ClassRepository classRepository;
 
+    /**
+     * @param classDto
+     * @return
+     */
     @Transactional
     public Response saveClass(ClassDto classDto) {
         Response response;
         if (classDto == null || classDto.getCode() == null)
             return Response.status(Response.Status.BAD_REQUEST).entity("Class information is required").build();
-        try{
+        try {
             Response retrieveClass = retrieveClassByCode(classDto.getCode());
-            if (retrieveClass.getStatus() == Response.Status.OK.getStatusCode()){
+            if (retrieveClass.getStatus() == Response.Status.OK.getStatusCode()) {
                 response = Response.status(Response.Status.BAD_REQUEST).entity("S4 Class already exist").build();
-            }else {
+            } else {
                 response = persistS4Class(classDto);
             }
 
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
     }
 
     @Transactional(readOnly = true)
-    public Response retrieveAll() {
+    public Response retrieveAll(int pageIndex, int pageSize, String search) {
         Response response;
-        List<S4ClassEntity> allClasses = classRepository.findAll();
         List<ClassDto> classDtoList = new ArrayList<>();
+        pageSize = pageSize == 0 ? 20 : pageSize;
+        Page<S4ClassEntity> allClasses;
+
+        if (search == null || search.isEmpty()) {
+            allClasses = classRepository.findAll(PageRequest.of(pageIndex, pageSize));
+        } else {
+            allClasses = classRepository.findAllByCriteria(search, PageRequest.of(pageIndex, pageSize));
+        }
 
         allClasses.forEach(s4ClassEntity -> {
             ClassDto classDto = new ClassDto(
                     s4ClassEntity.getCode(),
                     s4ClassEntity.getTitle(),
                     s4ClassEntity.getDescription());
-            addStudents(classDto,s4ClassEntity);
+            addStudents(classDto, s4ClassEntity);
             classDtoList.add(classDto);
         });
 
@@ -64,7 +77,7 @@ public class S4ClassService {
     public Response retrieveClassByCode(String classCode) {
         Response response;
 
-        try{
+        try {
             Optional<S4ClassEntity> s4ClassEntity = classRepository.findById(classCode);
 
             if (!s4ClassEntity.isPresent())
@@ -74,10 +87,10 @@ public class S4ClassService {
                     s4ClassEntity.get().getCode(),
                     s4ClassEntity.get().getTitle(),
                     s4ClassEntity.get().getDescription());
-            addStudents(dto,s4ClassEntity.get());
-            response =  Response.status(Response.Status.OK).entity(dto).build();
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+            addStudents(dto, s4ClassEntity.get());
+            response = Response.status(Response.Status.OK).entity(dto).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
@@ -106,16 +119,16 @@ public class S4ClassService {
         Response response;
         if (classDto == null || classDto.getCode() == null || code == null)
             return Response.status(Response.Status.BAD_REQUEST).entity("Class information is required").build();
-        try{
+        try {
             Response retrievedClass = retrieveClassByCode(code);
-            if (retrievedClass.getStatus() != Response.Status.OK.getStatusCode()){
-                response = Response.status(Response.Status.BAD_REQUEST).entity("S4 Class not found").build();
-            }else {
+            if (retrievedClass.getStatus() != Response.Status.OK.getStatusCode()) {
+                response = Response.status(Response.Status.NOT_FOUND).entity("S4 Class not found").build();
+            } else {
                 response = persistS4Class(classDto);
             }
 
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
@@ -127,18 +140,18 @@ public class S4ClassService {
 
         if (code == null)
             return Response.status(Response.Status.BAD_REQUEST).entity("Class code is required.").build();
-        try{
+        try {
             Response retrievedClass = retrieveClassByCode(code);
 
-            if (retrievedClass.getStatus() != Response.Status.OK.getStatusCode()){
+            if (retrievedClass.getStatus() != Response.Status.OK.getStatusCode()) {
                 response = Response.status(Response.Status.BAD_REQUEST).entity("Class not found.").build();
-            }else {
+            } else {
                 classRepository.deleteById(code);
                 response = Response.status(Response.Status.OK).entity("Class information was deleted.").build();
             }
 
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
@@ -152,7 +165,7 @@ public class S4ClassService {
 
         List<StudentDto> studentDtos = s4Class.getStudents();
 
-        if (studentDtos != null){
+        if (studentDtos != null) {
             List<S4StudentEntity> subjects = new ArrayList<>();
             studentDtos.forEach(studentDto -> subjects.add(new S4StudentEntity(
                     Long.valueOf(studentDto.getId()),
@@ -187,7 +200,7 @@ public class S4ClassService {
                     s4ClassEntity.getCode(),
                     s4ClassEntity.getTitle(),
                     s4ClassEntity.getDescription());
-            addStudents(classDto,s4ClassEntity);
+            addStudents(classDto, s4ClassEntity);
             classDtoList.add(classDto);
         });
 

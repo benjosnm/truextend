@@ -6,6 +6,8 @@ import net.truextend.s4api.repository.S4StudentRepository;
 import net.truextend.s4api.repository.entity.S4ClassEntity;
 import net.truextend.s4api.repository.entity.S4StudentEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,36 +23,44 @@ public class StudentService {
     private S4StudentRepository studentRepository;
 
     @Transactional
-    public Response saveStudent(StudentDto student){
+    public Response saveStudent(StudentDto student) {
         Response response;
         if (student == null || student.getId() == null)
             return Response.status(Response.Status.BAD_REQUEST).entity("Student information is required").build();
-        try{
+        try {
             Response retrieveStudent = retrieveStudentById(Long.valueOf(student.getId()));
-            if (retrieveStudent.getStatus() == Response.Status.OK.getStatusCode()){
+            if (retrieveStudent.getStatus() == Response.Status.OK.getStatusCode()) {
                 response = Response.status(Response.Status.BAD_REQUEST).entity("Student already exist").build();
-            }else {
+            } else {
                 response = persistStudent(student);
             }
 
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
     }
 
     @Transactional(readOnly = true)
-    public Response retrieveAll() {
+    public Response retrieveAll(int pageIndex, int pageSize, String search) {
         Response response;
-        List<S4StudentEntity> allStudents = studentRepository.findAll();
+        pageSize = pageSize == 0 ? 20 : pageSize;
+        Page<S4StudentEntity> allStudents;
+
+        if (search == null || search.isEmpty()) {
+            allStudents = studentRepository.findAll(PageRequest.of(pageIndex, pageSize));
+        } else {
+            allStudents = studentRepository.findAllByCriteria(search, PageRequest.of(pageIndex, pageSize));
+        }
+
         List<StudentDto> allStudentsDto = new ArrayList<>();
-        allStudents.forEach(s4StudentEntity -> {
+        allStudents.getContent().forEach(s4StudentEntity -> {
             StudentDto studentDto = new StudentDto(String.valueOf(
                     s4StudentEntity.getId()),
                     s4StudentEntity.getFirstName(),
                     s4StudentEntity.getLastName());
-            addClasses(studentDto,s4StudentEntity);
+            addClasses(studentDto, s4StudentEntity);
             allStudentsDto.add(studentDto);
         });
 
@@ -60,9 +70,9 @@ public class StudentService {
     }
 
     @Transactional(readOnly = true)
-    public Response retrieveStudentById(Long id) throws Exception {
+    public Response retrieveStudentById(Long id) {
         Response response;
-        try{
+        try {
             Optional<S4StudentEntity> studentEntity = studentRepository.findById(id);
             if (!studentEntity.isPresent())
                 throw new Exception("Student not found");
@@ -71,11 +81,11 @@ public class StudentService {
                     String.valueOf(studentEntity.get().getId()),
                     studentEntity.get().getFirstName(),
                     studentEntity.get().getLastName());
-            addClasses(studentDto,studentEntity.get());
+            addClasses(studentDto, studentEntity.get());
 
-            response =  Response.status(Response.Status.OK).entity(studentDto).build();
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+            response = Response.status(Response.Status.OK).entity(studentDto).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
@@ -100,19 +110,19 @@ public class StudentService {
     }
 
     @Transactional
-    public Response updateStudent(Long id, StudentDto studentDto) throws Exception {
+    public Response updateStudent(Long id, StudentDto studentDto) {
         Response response;
         if (studentDto == null || studentDto.getId() == null || id == null)
             return Response.status(Response.Status.BAD_REQUEST).entity("Student information is required").build();
-        try{
+        try {
             Response retrieveStudent = retrieveStudentById(id);
-            if (retrieveStudent.getStatus() != Response.Status.OK.getStatusCode()){
+            if (retrieveStudent.getStatus() != Response.Status.OK.getStatusCode()) {
                 response = Response.status(Response.Status.BAD_REQUEST).entity("Student not found").build();
-            }else {
+            } else {
                 response = persistStudent(studentDto);
             }
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
@@ -124,18 +134,18 @@ public class StudentService {
 
         if (id == null)
             return Response.status(Response.Status.BAD_REQUEST).entity("Student id is required.").build();
-        try{
+        try {
             Response retrieveStudent = retrieveStudentById(id);
 
-            if (retrieveStudent.getStatus() != Response.Status.OK.getStatusCode()){
+            if (retrieveStudent.getStatus() != Response.Status.OK.getStatusCode()) {
                 response = Response.status(Response.Status.BAD_REQUEST).entity("Student not found.").build();
-            }else {
+            } else {
                 studentRepository.deleteById(id);
                 response = Response.status(Response.Status.OK).entity("Student information was deleted.").build();
             }
 
-        }catch (Exception e){
-            response =  Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
         }
 
         return response;
@@ -148,7 +158,7 @@ public class StudentService {
         entity.setLastName(studentDto.getLastName());
 
         List<ClassDto> s4Classes = studentDto.getS4Classes();
-        if (s4Classes != null){
+        if (s4Classes != null) {
             List<S4ClassEntity> subjects = new ArrayList<>();
             s4Classes.forEach(classDto -> subjects.add(
                     new S4ClassEntity(
@@ -185,7 +195,7 @@ public class StudentService {
                     s4StudentEntity.getId()),
                     s4StudentEntity.getFirstName(),
                     s4StudentEntity.getLastName());
-            addClasses(studentDto,s4StudentEntity);
+            addClasses(studentDto, s4StudentEntity);
             allStudentsDto.add(studentDto);
         });
 

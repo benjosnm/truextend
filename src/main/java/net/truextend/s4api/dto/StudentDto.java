@@ -1,24 +1,17 @@
 package net.truextend.s4api.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.util.List;
 
-@JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 public class StudentDto {
     private String id;
     private String firstName;
     private String lastName;
     private List<ClassDto> s4Classes;
 
-    public StudentDto() {
-    }
-
     public StudentDto(String id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.s4Classes = s4Classes;
     }
 
     public String getId() {

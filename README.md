@@ -4,7 +4,7 @@ Base on Spring boot standalone Spring base app to support an embed Tomcat to pub
 
 Application contains 2 main resources:
 * S4ClassResource
-* StundentResource
+* StudentResource
 
 That resources provides all required operations over Classes and Students.
 
@@ -12,8 +12,27 @@ On implementation I take advantage of Spring boot framework and features.
 
 - Used Component from springframework stereotype for Jersey and Tomcat resource auto register.
 - Javax persistence for the management for persistence and object/relational mapping.
-- Spring jpa repository for object-realtional mapping.
-- Spring transactional support for renalational database.
+- Spring jpa repository for object-relational mapping.
+- Spring transactional support for relational database.
+
+# API Doc
+
+https://documenter.getpostman.com/view/1578682/S1M3tjKV?version=latest
+
+# Restore Postman test collection
+
+If Postman is not installed: https://www.getpostman.com/downloads/
+
+To restore Postman collection:
+
+1. Press on import button.
+2. Select S4.postman_collection file.
+
+To execute test:
+
+1. Open request i.e. Get all students.
+2. If its necessary change body in request i.e. Create student.
+3. Press Send button to execute request.
 
 # DB requirement
 

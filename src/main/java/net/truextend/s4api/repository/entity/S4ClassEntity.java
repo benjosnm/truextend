@@ -4,13 +4,13 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name="s4classes")
+@Table(name = "s4classes")
 public class S4ClassEntity {
     @Id
     private String code;
-    @Column(name="title")
+    @Column(name = "title")
     private String title;
-    @Column(name="description")
+    @Column(name = "description")
     private String description;
     @ManyToMany
     @JoinTable(

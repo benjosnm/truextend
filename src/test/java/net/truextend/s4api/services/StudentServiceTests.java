@@ -27,7 +27,7 @@ public class StudentServiceTests {
     StudentService service;
 
     @Before
-    public void init(){
+    public void init() {
         MockitoAnnotations.initMocks(this);
     }
 
@@ -52,7 +52,7 @@ public class StudentServiceTests {
     }
 
     @Test
-    public void retrieve_all_verify_all_students_are_retrieved_test() throws Exception{
+    public void retrieve_all_verify_all_students_are_retrieved_test() throws Exception {
         List<StudentDto> studentDtos = new ArrayList<>();
         studentDtos.add(new StudentDto("1", "Juan", "Perez"));
         studentDtos.add(new StudentDto("2", "Jose", "Perez"));
@@ -72,7 +72,7 @@ public class StudentServiceTests {
         s4StudentEntities.add(s4StudentEntity2);
 
         when(s4StudentRepository.findAll()).thenReturn(s4StudentEntities);
-        Response result = service.retrieveAll();
+        Response result = service.retrieveAll(0, 20, null);
 
         List<StudentDto> studentDtosResult = (List<StudentDto>) result.getEntity();
 

@@ -5,16 +5,16 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name="s4students")
+@Table(name = "s4students")
 public class S4StudentEntity {
 
     @Id
     private long id;
 
-    @Column(name="first_name")
+    @Column(name = "first_name")
     private String firstName;
 
-    @Column(name="last_name")
+    @Column(name = "last_name")
     private String lastName;
 
     @ManyToMany
